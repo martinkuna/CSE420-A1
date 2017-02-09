@@ -6,18 +6,20 @@
  */
 
 #include <stdio.h>  // std in/out for prints
+#include <stdlib.h> // needed for function exit
 #include <time.h>   // Needed for clock_gettime
-#include <unistd.h> // Needed for sleep()
+#include <unistd.h> // Needed for getopt
 
 //Do not uncomment line below unless DEBUGGING
 //#define DEBUG
-
-//CONFIG
+#ifdef DEBUG
 static unsigned int const ARRAY_MAX_POWER = 16;       //Array size max 2^(MAX_POWER)
+#endif
 static unsigned int const ARRAY_ITERATIONS = 10000;  //times to iterate accross all tests
 
 struct element{
-    int inarray[16];
+    int x;
+    int padding[15];
 };
 
 struct timespec start, stop;
@@ -47,7 +49,7 @@ void linearWrite(unsigned long power){
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
     for(i = 0; i < ARRAY_ITERATIONS; i++){
         for(j = 0; j < size; j++){
-            array[j].inarray[0] = 139021;
+            array[j].x = 139021;
         }
     }
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &stop);
@@ -57,7 +59,7 @@ void linearWrite(unsigned long power){
     printf("\nDifference timespec(ns)\t%ld", difference(start, stop).tv_nsec);
     printf("\nAvg access time (ns)\t%ld", difference(start,stop).tv_nsec/(size*ARRAY_ITERATIONS));
     // garbage to use the array and avoid error for now
-    printf("\n\tArrayFill Value %d\n", array[0].inarray[0]);
+    printf("\n\tArrayFill Value %d\n", array[0].x);
 }
 
 /* linear read
@@ -97,8 +99,61 @@ void testSleep(){
     printf("\nTest new calc\t%.10f", (double)(stop.tv_nsec - start.tv_nsec)/1000000000);
 }
 
-int main(){
-    
+int main(int argc, char*argv[]){
+
+    int opt;
+    int mode = -1, power = -1;
+
+    while ((opt = getopt(argc, argv, "m:p:")) != -1) {
+        switch(opt) {
+            case 'm':
+                mode = atoi(optarg);
+                break;
+            case 'p':
+                power = atoi(optarg);
+                break;
+            case '?':
+                if (optopt == 'm') {
+                    printf("\nMissing mandatory mode setting between 1 and 4");
+                } else if (optopt == 'p') {
+                    printf("\nMissing mandatory power settings for array");
+                } else {
+                    printf("\nInvalid option received");
+                }
+                break;
+            default: /* '? */
+                fprintf(stderr, "Usage: %s [-m 1-4] [-p 1-16]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    if(mode < 1 || mode > 4 || power < 0 || power > 16){
+        fprintf(stderr, "Usage: %s [-m 1-4] [-p 1-16]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    switch(mode){
+        case 1:
+            printf("\n[ Linear Write -- Mode %d -- Power %d]\n",mode,power);
+            linearWrite(power);
+            break;
+        case 2:
+            printf("\n[ Linear Read -- Mode %d -- Power %d]\n",mode,power);
+            linearRead(power);
+            break;
+        case 3:
+            printf("\n[ Random Write -- Mode %d -- Power %d]\n",mode,power);
+            randWrite();
+            break;
+        case 4:
+            printf("\n[ Random Read -- Mode %d -- Power %d]\n",mode,power);
+            randRead();
+            break;
+    }
+
+    exit(EXIT_SUCCESS);
+
+#ifdef DEBUG
     printf("\n[ LINEAR WRITE TEST ]\n");
     unsigned int i;
     for(i=0; i <= ARRAY_MAX_POWER; i++){
@@ -106,8 +161,6 @@ int main(){
         linearWrite(i);
     }
 
-
-#ifdef DEBUG
     printf("\n[ LINEAR READ TEST ]\n");
     for(i=0; i<= ARRAY_MAX_POWER; i++){
         printf("\n::POWER %d",i);
@@ -151,6 +204,5 @@ int main(){
     testSleep();
 #endif
 
-    printf("\n\nPROGRAM EXIT\n\n");
     return 0;
 }
