@@ -1,6 +1,6 @@
 # Basic makefile for ASU projects
 # Martin Kuna
-# ASUID: 1206459510
+# ASUID: <REMOVED>
 
 #Program Names	-- CHECK_CLOCKS is a seperate program used to test clock resolution
 PROGRAM_NAME=prog
