@@ -1,8 +1,8 @@
 /*
  * Assignment #1 for CSE 420: Computer Architecture I
  * 
- * MARTIN A KUNA (mkuna@asu.edu)
- * ID: 1206459510
+ * MARTIN KUNA (<REMOVED>)
+ * ID: <REMOVED>
  */
 
 #include <stdio.h>  // std in/out for prints
